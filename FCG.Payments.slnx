@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/k8s/">
+    <File Path="k8s/api-deployment.yaml" />
+    <File Path="k8s/api-service.yaml" />
+    <File Path="k8s/configmap.yaml" />
+    <File Path="k8s/namespace.yaml" />
+    <File Path="k8s/rabbitmq.yaml" />
+    <File Path="k8s/secret.yaml" />
+    <File Path="k8s/sqlserver.yaml" />
+    <File Path="k8s/worker-deployment.yaml" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/FCG.Payments.Api/FCG.Payments.Api.csproj" />
+    <Project Path="src/FCG.Payments.Application/FCG.Payments.Application.csproj" />
+    <Project Path="src/FCG.Payments.Domain/FCG.Payments.Domain.csproj" />
+    <Project Path="src/FCG.Payments.Infrastructure/FCG.Payments.Infrastructure.csproj" />
+    <Project Path="src/FCG.Payments.Worker/FCG.Payments.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FCG.Payments.Tests/FCG.Payments.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,8 @@
+﻿namespace FCG.Payments.Application.Contracts;
+
+public interface ICorrelationIdAccessor
+{
+    Guid Get();
+
+    void Set(Guid correlationId);
+}

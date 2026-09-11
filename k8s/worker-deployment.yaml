@@ -37,7 +37,7 @@ spec:
 
       containers:
         - name: fcg-payments-worker
-          image: brnmatos/fcg-payments-worker:1.0.1
+          image: brnmatos/fcg-payments-worker:1.0.2
           imagePullPolicy: IfNotPresent
 
           envFrom:

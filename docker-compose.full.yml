@@ -1,6 +1,6 @@
 services:
   payments-api:
-    image: brnmatos/fcg-payments-api:1.0.0
+    image: brnmatos/fcg-payments-api:1.0.2
 
     build:
       context: .
@@ -29,6 +29,9 @@ services:
       RabbitMq__Username: rabbitmquser
       RabbitMq__Password: "rbmq2587!@"
 
+      Notifications__BaseUrl: "http://host.docker.internal:7071"
+      Notifications__FunctionKey: ""
+
     depends_on:
       payments-sqlserver:
         condition: service_healthy
@@ -36,7 +39,7 @@ services:
         condition: service_started
 
   payments-worker:
-    image: brnmatos/fcg-payments-worker:1.0.0
+    image: brnmatos/fcg-payments-worker:1.0.2
 
     build:
       context: .
@@ -56,6 +59,9 @@ services:
       RabbitMq__Username: rabbitmquser
       RabbitMq__Password: "rbmq2587!@"
       RabbitMq__OrderPlacedQueue: payments-order-placed
+
+      Notifications__BaseUrl: "http://host.docker.internal:7071"
+      Notifications__FunctionKey: ""
 
     depends_on:
       payments-sqlserver:

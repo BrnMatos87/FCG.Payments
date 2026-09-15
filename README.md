@@ -62,7 +62,7 @@ x-functions-key: {Notifications__FunctionKey}  # quando configurada
 Body: PaymentProcessedEvent em JSON
 ```
 
-O cliente é registrado com `IHttpClientFactory`. A resposta HTTP é validada, e falhas são registradas e propagadas ao fluxo chamador. Uma política de retry, quando desejada, deve ser configurada explicitamente no host/consumer.
+O cliente é registrado com `IHttpClientFactory`. A resposta HTTP é validada, e falhas são registradas e propagadas ao fluxo chamador.
 
 Configurações:
 

@@ -18,12 +18,9 @@ public static class DependencyInjection
     {
         AddDatabase(services, configuration);
         AddRabbitMq(services, configuration);
+        AddNotifications(services, configuration);
 
         services.AddScoped<IPaymentRepository, PaymentRepository>();
-
-        services.AddScoped<
-            IPaymentEventPublisher,
-            MassTransitPaymentEventPublisher>();
 
         return services;
     }
@@ -90,5 +87,33 @@ public static class DependencyInjection
                     });
             });
         });
+    }
+
+    private static void AddNotifications(
+        IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services
+            .AddOptions<NotificationsOptions>()
+            .Bind(configuration.GetSection(NotificationsOptions.SectionName))
+            .Validate(
+                options => Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out _),
+                "Notifications:BaseUrl deve ser uma URL absoluta válida.")
+            .ValidateOnStart();
+
+        services.AddHttpClient<MassTransitPaymentEventPublisher>((serviceProvider, client) =>
+        {
+            var options = serviceProvider
+                .GetRequiredService<IOptions<NotificationsOptions>>()
+                .Value;
+
+            client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + '/');
+
+            if (!string.IsNullOrWhiteSpace(options.FunctionKey))
+                client.DefaultRequestHeaders.Add("x-functions-key", options.FunctionKey);
+        });
+
+        services.AddScoped<IPaymentEventPublisher>(serviceProvider =>
+            serviceProvider.GetRequiredService<MassTransitPaymentEventPublisher>());
     }
 }

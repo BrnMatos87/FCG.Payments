@@ -432,7 +432,7 @@ FodyWeavers.xsd
 #############################################################
 
 # Arquivos locais de configuração
-**/appsettings.Local.json
+**/appsettings.Local*.json
 
 # Arquivos de exemplo podem ser versionados
 !**/appsettings.Local.example.json

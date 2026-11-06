@@ -16,9 +16,9 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
 
-      ConnectionStrings__DefaultConnection: "Server=payments-sqlserver,1433;Database=FCGPaymentsDb;User Id=sa;Password=senha123@#4l;TrustServerCertificate=True;Encrypt=False"
+      ConnectionStrings__DefaultConnection: "Server=payments-sqlserver,1433;Database=FCG_Payments;User Id=sa;Password=${PAYMENTS_SQL_PASSWORD:?Defina PAYMENTS_SQL_PASSWORD no arquivo .env};TrustServerCertificate=True"
 
-      Jwt__SecretKey: "Q8m5L2b0V0xSgFJq9nR4pY7eTcW1uNzKk3XhM8aPvL2YzR5fGb1nC9wE6sDtQ7uH"
+      Jwt__SecretKey: "${JWT_SECRET:?Defina JWT_SECRET no arquivo .env}"
       Jwt__Issuer: "FCG.Users.Api"
       Jwt__Audience: "FCG.CloudGames"
       Jwt__ExpirationMinutes: "60"
@@ -26,11 +26,11 @@ services:
       RabbitMq__Host: rabbitmq
       RabbitMq__Port: "5672"
       RabbitMq__VirtualHost: "/"
-      RabbitMq__Username: rabbitmquser
-      RabbitMq__Password: "rbmq2587!@"
+      RabbitMq__Username: "${RABBITMQ_USERNAME:-fcg}"
+      RabbitMq__Password: "${RABBITMQ_PASSWORD:?Defina RABBITMQ_PASSWORD no arquivo .env}"
 
-      Notifications__BaseUrl: "http://host.docker.internal:7071"
-      Notifications__FunctionKey: ""
+      Notifications__BaseUrl: "${NOTIFICATIONS_BASE_URL:-http://host.docker.internal:7071}"
+      Notifications__FunctionKey: "${NOTIFICATIONS_FUNCTION_KEY:-}"
 
     depends_on:
       payments-sqlserver:
@@ -51,17 +51,17 @@ services:
     environment:
       DOTNET_ENVIRONMENT: Development
 
-      ConnectionStrings__DefaultConnection: "Server=payments-sqlserver,1433;Database=FCGPaymentsDb;User Id=sa;Password=senha123@#4l;TrustServerCertificate=True;Encrypt=False"
+      ConnectionStrings__DefaultConnection: "Server=payments-sqlserver,1433;Database=FCG_Payments;User Id=sa;Password=${PAYMENTS_SQL_PASSWORD:?Defina PAYMENTS_SQL_PASSWORD no arquivo .env};TrustServerCertificate=True"
 
       RabbitMq__Host: rabbitmq
       RabbitMq__Port: "5672"
       RabbitMq__VirtualHost: "/"
-      RabbitMq__Username: rabbitmquser
-      RabbitMq__Password: "rbmq2587!@"
+      RabbitMq__Username: "${RABBITMQ_USERNAME:-fcg}"
+      RabbitMq__Password: "${RABBITMQ_PASSWORD:?Defina RABBITMQ_PASSWORD no arquivo .env}"
       RabbitMq__OrderPlacedQueue: payments-order-placed
 
-      Notifications__BaseUrl: "http://host.docker.internal:7071"
-      Notifications__FunctionKey: ""
+      Notifications__BaseUrl: "${NOTIFICATIONS_BASE_URL:-http://host.docker.internal:7071}"
+      Notifications__FunctionKey: "${NOTIFICATIONS_FUNCTION_KEY:-}"
 
     depends_on:
       payments-sqlserver:
@@ -76,7 +76,7 @@ services:
 
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "senha123@#4l"
+      MSSQL_SA_PASSWORD: "${PAYMENTS_SQL_PASSWORD:?Defina PAYMENTS_SQL_PASSWORD no arquivo .env}"
 
     ports:
       - "1437:1433"
@@ -88,7 +88,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'senha123@#4l' -C -Q 'SELECT 1' || exit 1"
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${PAYMENTS_SQL_PASSWORD:?Defina PAYMENTS_SQL_PASSWORD no arquivo .env}' -C -Q 'SELECT 1' || exit 1"
         ]
       interval: 10s
       timeout: 5s
@@ -101,8 +101,8 @@ services:
     restart: unless-stopped
 
     environment:
-      RABBITMQ_DEFAULT_USER: rabbitmquser
-      RABBITMQ_DEFAULT_PASS: "rbmq2587!@"
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_USERNAME:-fcg}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?Defina RABBITMQ_PASSWORD no arquivo .env}"
 
     ports:
       - "5672:5672"

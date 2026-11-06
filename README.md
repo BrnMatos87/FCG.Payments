@@ -132,11 +132,21 @@ docker build -f Dockerfile.Worker -t brnmatos/fcg-payments-worker:1.0.2 .
 
 O `docker-compose.full.yml` permite desenvolvimento isolado com API, Worker, SQL Server e RabbitMQ. A Function deve estar disponível no host ou na URL configurada.
 
+Antes de iniciar o Compose, copie o exemplo e preencha todos os campos
+obrigatórios:
+
+```powershell
+Copy-Item .env.example .env
+docker compose --env-file .env -f docker-compose.full.yml up -d
+```
+
 Para a solução completa da Fase 3, use o Compose do `FCG.Orchestration`. Nele, Payments API é interna e o Kong recebe o tráfego externo.
 
 ## Kubernetes
 
-Os manifests locais suportam execução isolada. Na arquitetura integrada, use o Kustomize do `FCG.Orchestration`, que configura:
+O `FCG.Orchestration` é a fonte única dos manifests Kubernetes. A pasta `k8s/`
+deste repositório contém somente um README apontando para os arquivos oficiais.
+Na arquitetura integrada, o Kustomize do Orchestration configura:
 
 - `payments-api` como `ClusterIP` na porta `8080`;
 - Payments API e Worker com requests/limits;
@@ -154,6 +164,19 @@ Copy-Item k8s/shared-secret.example.yaml k8s/shared-secret.yaml
 kubectl kustomize .
 kubectl apply -k .
 ```
+
+## CI/CD da Fase 4
+
+O workflow `.github/workflows/payments-ci-cd.yml` executa:
+
+- build e testes em pushes e pull requests para `fase4` e `main`;
+- validação das imagens Docker da API e do Worker;
+- publicação das duas imagens no Azure Container Registry após push na `main`;
+- rolling update dos deployments do Payments no AKS.
+
+A autenticação com a Azure usa OIDC e requer os secrets de identificação
+`AZURE_CLIENT_ID`, `AZURE_TENANT_ID` e `AZURE_SUBSCRIPTION_ID` no GitHub. Não é
+armazenado client secret no repositório.
 
 ## Fluxo completo
 

@@ -4,7 +4,7 @@ services:
     container_name: fcg-payments-sqlserver
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "senha123@#4l"
+      MSSQL_SA_PASSWORD: "${PAYMENTS_SQL_PASSWORD:?Defina PAYMENTS_SQL_PASSWORD no arquivo .env}"
     ports:
       - "1437:1433"
     volumes:
@@ -14,8 +14,8 @@ services:
     image: rabbitmq:3-management
     container_name: fcg-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: "rabbitmquser"
-      RABBITMQ_DEFAULT_PASS: "rbmq2587!@"
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_USERNAME:-fcg}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?Defina RABBITMQ_PASSWORD no arquivo .env}"
     ports:
       - "5672:5672"
       - "15672:15672"

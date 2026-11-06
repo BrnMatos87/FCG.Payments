@@ -75,9 +75,9 @@ public class MassTransitPaymentEventPublisherTests
         Assert.Equal(message.CorrelationId, request?.CorrelationId);
     }
 
-    [Fact(DisplayName = "Mantendo RabbitMQ e propagando falha HTTP do Notifications")]
+    [Fact(DisplayName = "Mantendo RabbitMQ sem falhar quando Notifications retorna erro")]
     [Trait("Categoria", "Infrastructure - Messaging")]
-    public async Task PublishPaymentProcessedAsync_NotificationFailure_ShouldThrow()
+    public async Task PublishPaymentProcessedAsync_NotificationFailure_ShouldNotThrow()
     {
         var httpClient = new HttpClient(
             new RecordingHttpMessageHandler(HttpStatusCode.InternalServerError))
@@ -95,12 +95,63 @@ public class MassTransitPaymentEventPublisherTests
             CorrelationId = Guid.NewGuid()
         };
 
-        await Assert.ThrowsAsync<HttpRequestException>(() =>
-            publisher.PublishPaymentProcessedAsync(message));
+        await publisher.PublishPaymentProcessedAsync(message);
 
         _publishEndpointMock.Verify(
             endpoint => endpoint.Publish(message, It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact(DisplayName = "Mantendo RabbitMQ sem falhar quando Notifications está indisponível")]
+    [Trait("Categoria", "Infrastructure - Messaging")]
+    public async Task PublishPaymentProcessedAsync_NotificationsUnavailable_ShouldNotThrow()
+    {
+        var publisher = CreatePublisherThatThrows(
+            new HttpRequestException("Notifications indisponível"));
+        var message = CreateMessage();
+
+        await publisher.PublishPaymentProcessedAsync(message);
+
+        _publishEndpointMock.Verify(
+            endpoint => endpoint.Publish(message, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact(DisplayName = "Mantendo RabbitMQ sem falhar em timeout do Notifications")]
+    [Trait("Categoria", "Infrastructure - Messaging")]
+    public async Task PublishPaymentProcessedAsync_NotificationsTimeout_ShouldNotThrow()
+    {
+        var publisher = CreatePublisherThatThrows(
+            new OperationCanceledException("Timeout do Notifications"));
+        var message = CreateMessage();
+
+        await publisher.PublishPaymentProcessedAsync(message);
+
+        _publishEndpointMock.Verify(
+            endpoint => endpoint.Publish(message, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    private MassTransitPaymentEventPublisher CreatePublisherThatThrows(Exception exception)
+    {
+        var httpClient = new HttpClient(new ThrowingHttpMessageHandler(exception))
+        {
+            BaseAddress = new Uri("https://notifications.test/")
+        };
+
+        return new MassTransitPaymentEventPublisher(
+            _publishEndpointMock.Object,
+            httpClient,
+            Mock.Of<ILogger<MassTransitPaymentEventPublisher>>());
+    }
+
+    private static PaymentProcessedEvent CreateMessage()
+    {
+        return new PaymentProcessedEvent
+        {
+            OrderId = Guid.NewGuid(),
+            CorrelationId = Guid.NewGuid()
+        };
     }
 
     private sealed class RecordingHttpMessageHandler : HttpMessageHandler
@@ -123,6 +174,23 @@ public class MassTransitPaymentEventPublisherTests
             Request = request;
             Body = await request.Content!.ReadAsStringAsync(cancellationToken);
             return new HttpResponseMessage(_statusCode);
+        }
+    }
+
+    private sealed class ThrowingHttpMessageHandler : HttpMessageHandler
+    {
+        private readonly Exception _exception;
+
+        public ThrowingHttpMessageHandler(Exception exception)
+        {
+            _exception = exception;
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromException<HttpResponseMessage>(_exception);
         }
     }
 }

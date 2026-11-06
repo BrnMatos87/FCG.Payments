@@ -27,23 +27,37 @@ public class MassTransitPaymentEventPublisher : IPaymentEventPublisher
     {
         await _publishEndpoint.Publish(message, ct);
 
-        using var response = await _httpClient.PostAsJsonAsync(
-            PaymentProcessedRoute,
-            message,
-            ct);
+        try
+        {
+            using var response = await _httpClient.PostAsJsonAsync(
+                PaymentProcessedRoute,
+                message,
+                ct);
 
-        if (response.IsSuccessStatusCode)
-            return;
+            if (response.IsSuccessStatusCode)
+                return;
 
-        _logger.LogError(
-            "Falha ao chamar Notifications para o pedido {OrderId}. StatusCode: {StatusCode}, CorrelationId: {CorrelationId}",
-            message.OrderId,
-            (int)response.StatusCode,
-            message.CorrelationId);
-
-        throw new HttpRequestException(
-            $"Notifications retornou HTTP {(int)response.StatusCode} para PaymentProcessed.",
-            null,
-            response.StatusCode);
+            _logger.LogWarning(
+                "Notifications indisponível para o pedido {OrderId}. StatusCode: {StatusCode}, CorrelationId: {CorrelationId}",
+                message.OrderId,
+                (int)response.StatusCode,
+                message.CorrelationId);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Não foi possível acessar Notifications para o pedido {OrderId}. CorrelationId: {CorrelationId}",
+                message.OrderId,
+                message.CorrelationId);
+        }
+        catch (OperationCanceledException ex) when (!ct.IsCancellationRequested)
+        {
+            _logger.LogWarning(
+                ex,
+                "Timeout ao acessar Notifications para o pedido {OrderId}. CorrelationId: {CorrelationId}",
+                message.OrderId,
+                message.CorrelationId);
+        }
     }
 }

@@ -171,7 +171,8 @@ O workflow `.github/workflows/payments-ci-cd.yml` executa:
 
 - build e testes em pushes e pull requests para `fase4` e `main`;
 - validação das imagens Docker da API e do Worker;
-- publicação das duas imagens no Azure Container Registry após push na `main`;
+- publicação das duas imagens no Azure Container Registry com as tags imutáveis
+  do SHA e o alias `latest` após push na `main`;
 - rolling update dos deployments do Payments no AKS.
 
 A autenticação com a Azure usa OIDC e requer os secrets de identificação

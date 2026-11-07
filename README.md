@@ -126,8 +126,8 @@ http://localhost:5003/swagger
 ## Docker
 
 ```powershell
-docker build -f Dockerfile.Api -t brnmatos/fcg-payments-api:1.0.2 .
-docker build -f Dockerfile.Worker -t brnmatos/fcg-payments-worker:1.0.2 .
+docker build -f Dockerfile.Api -t fcg-payments-api:latest .
+docker build -f Dockerfile.Worker -t fcg-payments-worker:latest .
 ```
 
 O `docker-compose.full.yml` permite desenvolvimento isolado com API, Worker, SQL Server e RabbitMQ. A Function deve estar disponível no host ou na URL configurada.
@@ -140,7 +140,7 @@ Copy-Item .env.example .env
 docker compose --env-file .env -f docker-compose.full.yml up -d
 ```
 
-Para a solução completa da Fase 3, use o Compose do `FCG.Orchestration`. Nele, Payments API é interna e o Kong recebe o tráfego externo.
+Para a solução completa da Fase 4, use o Compose do `FCG.Orchestration`. Nele, Payments API é interna e o Kong recebe o tráfego externo.
 
 ## Kubernetes
 
@@ -190,12 +190,13 @@ armazenado client secret no repositório.
 6. Notifications processa a confirmação de pagamento.
 ```
 
-## Relação com os requisitos da Fase 3
+## Relação com os requisitos da Fase 4
 
-- microsserviço containerizado com API e Worker independentes;
-- acesso externo centralizado no Kong;
-- RabbitMQ preservado apenas no fluxo de negócio assíncrono;
-- Notifications desacoplada do broker e executada como Azure Function HTTP Trigger;
-- configurações sensíveis separadas das configurações públicas.
+Payments amplia o escopo mínimo da fase, que exige pipeline ao menos para Users e Catalog:
 
-Na stack de observabilidade escolhida para a Fase 3, a instrumentação obrigatória é Users e Catalog. Payments não é target do Prometheus nesta opção; isso não impede instrumentação futura.
+- API e Worker possuem pipeline de build, testes, publicação no ACR e rolling update no AKS;
+- imagens recebem tag imutável com o SHA e o alias `latest`;
+- acesso externo permanece centralizado no Kong;
+- RabbitMQ é usado somente no fluxo de negócio assíncrono;
+- configurações públicas ficam em ConfigMap e credenciais em Kubernetes Secret;
+- Payments não é target do Prometheus na opção de observabilidade adotada; a instrumentação obrigatória permanece em Users e Catalog.
